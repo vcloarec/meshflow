@@ -1,3 +1,4 @@
+import decorator
 import math
 import os
 from PyQt5.QtCore import Qt, pyqtSignal, QDateTime, QSize
@@ -38,6 +39,15 @@ try:
     import pyqtgraph
 except ImportError:
     import meshflow.pyqtgraph_0_12_2 as pyqtgraph
+
+
+@decorator.decorator
+def showWaitCursor(func, *args, **kwargs):
+    QApplication.setOverrideCursor(Qt.WaitCursor)
+    try:
+        return func(*args, **kwargs)
+    finally:
+        QApplication.restoreOverrideCursor()
 
 
 class ConfigDialog(QDialog):
@@ -196,6 +206,7 @@ class MainWidget(QWidget):
             settings = QgsSettings()
             settings.setValue("mesh-flow/delta", self._delta)
 
+    @showWaitCursor
     def _update_profile_flow(self):
         self._plot.clear()
         if self._delta <= 0:
@@ -222,8 +233,6 @@ class MainWidget(QWidget):
         length = profile_geom.length()
         if length == 0 or length / self._delta > 10000:
             return
-
-        QApplication.setOverrideCursor(Qt.WaitCursor)
 
         dataset_vector_count = current_layer.datasetCount(QgsMeshDatasetIndex(group_vector_index, 0))
         through_line_value_series = []
@@ -273,8 +282,6 @@ class MainWidget(QWidget):
         self._time_line = pyqtgraph.InfiniteLine(angle=90, pen=pen)
         self._plot.addItem(self._time_line)
         self.on_time_change()
-
-        QApplication.restoreOverrideCursor()
 
     def on_closed(self):
         self.current_profile_line.hide()
