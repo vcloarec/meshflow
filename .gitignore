@@ -3,3 +3,9 @@
 __pycache__/
 *.py[cod]
 *$py.class
+
+
+build
+.env
+.vscode
+.venv
