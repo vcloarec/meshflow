@@ -266,8 +266,6 @@ class MainWidget(QWidget):
                     offset += self._delta
                     continue
 
-                vel_x = vector_value.x()
-                vel_y = vector_value.y()
                 proj_vector_value = unit_orth_vector.x() * vector_value.x() + unit_orth_vector.y() * vector_value.y()
                 proj_vector_value = proj_vector_value * depth * self._delta
                 if not math.isnan(proj_vector_value):
