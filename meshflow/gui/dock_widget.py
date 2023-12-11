@@ -1,6 +1,7 @@
 import decorator
 import math
 import os
+from datetime import timezone
 from PyQt5.QtCore import Qt, pyqtSignal, QDateTime, QSize
 from PyQt5.QtWidgets import (
     QComboBox,
@@ -170,6 +171,7 @@ class MainWidget(QWidget):
         self._plot.setAxisItems({"bottom": axis})
         lay.addWidget(self._gw, 4, 0, 1, 2)
 
+        self._warn_reference_time = False
         self._iface.mapCanvas().temporalRangeChanged.connect(self.on_time_change)
         self._time_line = pyqtgraph.InfiniteLine(angle=90)
 
@@ -246,7 +248,7 @@ class MainWidget(QWidget):
             ds_vect_meta = current_layer.datasetMetadata(vector_ds_index)
             times_hour.append(ds_vect_meta.time())
             time_ms = current_layer.datasetRelativeTimeInMilliseconds(vector_ds_index)
-            time_abs.append(ref_time.addMSecs(time_ms).toPyDateTime().timestamp())
+            time_abs.append(self._datetime_to_timestamp(ref_time.addMSecs(time_ms)))
             while offset < length:
                 pt = profile_geom.interpolate(offset).asPoint()
                 vector_value = current_layer.datasetValue(QgsMeshDatasetIndex(group_vector_index, i), pt)
@@ -281,6 +283,15 @@ class MainWidget(QWidget):
         self._plot.addItem(self._time_line)
         self.on_time_change()
 
+    def _datetime_to_timestamp(self, qdatetime: QDateTime) -> float:
+        try:
+            return qdatetime.toPyDateTime().timestamp()
+        except OSError:
+            if not self._warn_reference_time:
+                self._iface.messageBar().pushMessage("Mesh Flow", "Set reference time after 1970", level=Qgis.Warning)
+                self._warn_reference_time = True
+            return qdatetime.toPyDateTime().replace(tzinfo=timezone.utc).timestamp()
+
     def on_closed(self):
         self.current_profile_line.hide()
 
@@ -291,7 +302,7 @@ class MainWidget(QWidget):
         current_time = self._iface.mapCanvas().temporalRange().begin()
         if not current_time.isValid():
             return
-        current_time = current_time.toPyDateTime().timestamp()
+        current_time = self._datetime_to_timestamp(current_time)
         self._time_line.setValue(current_time)
 
 
