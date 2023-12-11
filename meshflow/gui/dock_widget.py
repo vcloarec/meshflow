@@ -215,7 +215,7 @@ class MainWidget(QWidget):
             if meta.name() == dataset_depth_name:
                 group_depth_index = i
 
-        if group_vector_index == -1 or group_depth_index == 1:
+        if group_vector_index == -1 or group_depth_index == -1:
             return
 
         profile_geom = self.current_profile_line.asGeometry()
