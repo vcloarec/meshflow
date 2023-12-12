@@ -7,7 +7,7 @@ description= Tool to extract flow from hydraulic model results contained in a me
 version=0.1.0
 author=Vincent Cloarec
 email=vcloarec@gmail.com
-about= The user has to choose the velocity dataset group ans the depth dataset group. Then when the user draw a line on the map canvas, the flow through the line is calculated to produce a hydrograph that can be veiw in a plot and exported (right click on the plot).
+about= The user has to choose the velocity dataset group and the depth dataset group. Then when the user draw a line on the map canvas, the flow through the line is calculated to produce a hydrograph that can be view in a plot and exported (right click on the plot).
 ; end of mandatory metadata
 
 ; start of optional metadata
