@@ -1,6 +1,7 @@
 import decorator
 import math
 import os
+from datetime import timezone
 from PyQt5.QtCore import Qt, pyqtSignal, QDateTime, QSize
 from PyQt5.QtWidgets import (QComboBox, QWidget, QGridLayout, QLabel, QToolButton, QAction, QToolBar, QDialog,
                              QHBoxLayout, QVBoxLayout, QDialogButtonBox, QApplication, )
@@ -224,7 +225,7 @@ class MainWidget(QWidget):
             ds_vect_meta = current_layer.datasetMetadata(vector_ds_index)
             times_hour.append(ds_vect_meta.time())
             time_ms = current_layer.datasetRelativeTimeInMilliseconds(vector_ds_index)
-            time_abs.append(ref_time.addMSecs(time_ms).toPyDateTime().timestamp())
+            time_abs.append(self._datetime_to_timestamp(ref_time.addMSecs(time_ms)))
             while offset < length:
                 pt = profile_geom.interpolate(offset).asPoint()
                 vector_value = current_layer.datasetValue(QgsMeshDatasetIndex(group_vector_index, i), pt)
@@ -259,6 +260,9 @@ class MainWidget(QWidget):
         self._plot.addItem(self._time_line)
         self.on_time_change()
 
+    def _datetime_to_timestamp(self, qdatetime: QDateTime) -> float:
+        return qdatetime.toPyDateTime().replace(tzinfo=timezone.utc).timestamp()
+
     def on_closed(self):
         if self._current_profile_line is not None:
             self._current_profile_line.hide()
@@ -272,7 +276,7 @@ class MainWidget(QWidget):
         current_time = self._iface.mapCanvas().temporalRange().begin()
         if not current_time.isValid():
             return
-        current_time = current_time.toPyDateTime().timestamp()
+        current_time = self._datetime_to_timestamp(current_time)
         self._time_line.setValue(current_time)
 
 
