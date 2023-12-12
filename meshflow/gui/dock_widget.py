@@ -2,34 +2,12 @@ import decorator
 import math
 import os
 from PyQt5.QtCore import Qt, pyqtSignal, QDateTime, QSize
-from PyQt5.QtWidgets import (
-    QComboBox,
-    QWidget,
-    QGridLayout,
-    QLabel,
-    QToolButton,
-    QAction,
-    QToolBar,
-    QDialog,
-    QHBoxLayout,
-    QVBoxLayout,
-    QDialogButtonBox,
-    QApplication,
-)
+from PyQt5.QtWidgets import (QComboBox, QWidget, QGridLayout, QLabel, QToolButton, QAction, QToolBar, QDialog,
+                             QHBoxLayout, QVBoxLayout, QDialogButtonBox, QApplication, )
 from PyQt5.QtGui import QColor, QIcon
 from qgis.gui import QgsDockWidget, QgsMapLayerComboBox, QgsMapTool, QgsRubberBand, QgsDoubleSpinBox
-from qgis.core import (
-    QgsProject,
-    Qgis,
-    QgsMapLayerProxyModel,
-    QgsMeshLayer,
-    QgsMapLayerType,
-    QgsMeshDatasetIndex,
-    QgsWkbTypes,
-    QgsGeometry,
-    QgsVector,
-    QgsSettings,
-)
+from qgis.core import (QgsProject, Qgis, QgsMapLayerProxyModel, QgsMeshLayer, QgsMapLayerType, QgsMeshDatasetIndex,
+                       QgsWkbTypes, QgsGeometry, QgsVector, QgsSettings, )
 
 from ..resources import *
 
@@ -153,9 +131,9 @@ class MainWidget(QWidget):
         self._action_map_tool.triggered.connect(self._on_map_tool)
         self._map_tool.finished.connect(self._on_map_tool_finished)
 
-        self.current_profile_line = QgsRubberBand(iface.mapCanvas(), QgsWkbTypes.LineGeometry)
-        self.current_profile_line.setColor(Qt.green)
-        self.current_profile_line.setWidth(2)
+        self._current_profile_line = QgsRubberBand(iface.mapCanvas(), QgsWkbTypes.LineGeometry)
+        self._current_profile_line.setColor(Qt.green)
+        self._current_profile_line.setWidth(2)
 
         self._action_config = QAction(QIcon(":/plugins/mesh-flow/images/settings.svg"), "Config", self)
         self._action_config.triggered.connect(self._on_config_dialog)
@@ -196,7 +174,7 @@ class MainWidget(QWidget):
 
     def _on_map_tool_finished(self, points):
         geom = QgsGeometry.fromPolylineXY(points)
-        self.current_profile_line.setToGeometry(geom)
+        self._current_profile_line.setToGeometry(geom)
         self._update_profile_flow()
 
     def _on_config_dialog(self):
@@ -229,7 +207,7 @@ class MainWidget(QWidget):
         if group_vector_index == -1 or group_depth_index == -1:
             return
 
-        profile_geom = self.current_profile_line.asGeometry()
+        profile_geom = self._current_profile_line.asGeometry()
         length = profile_geom.length()
         if length == 0 or length / self._delta > 10000:
             return
@@ -282,10 +260,13 @@ class MainWidget(QWidget):
         self.on_time_change()
 
     def on_closed(self):
-        self.current_profile_line.hide()
+        if self._current_profile_line is not None:
+            self._current_profile_line.hide()
+        self._iface.mapCanvas().unsetMapTool(self._map_tool)
 
     def on_opened(self):
-        self.current_profile_line.show()
+        if self._current_profile_line is not None:
+            self._current_profile_line.show()
 
     def on_time_change(self):
         current_time = self._iface.mapCanvas().temporalRange().begin()

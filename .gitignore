@@ -9,3 +9,5 @@ build
 .env
 .vscode
 .venv
+
+meshflow/.idea/
