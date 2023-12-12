@@ -171,7 +171,6 @@ class MainWidget(QWidget):
         self._plot.setAxisItems({"bottom": axis})
         lay.addWidget(self._gw, 4, 0, 1, 2)
 
-        self._warn_reference_time = False
         self._iface.mapCanvas().temporalRangeChanged.connect(self.on_time_change)
         self._time_line = pyqtgraph.InfiniteLine(angle=90)
 
@@ -284,13 +283,7 @@ class MainWidget(QWidget):
         self.on_time_change()
 
     def _datetime_to_timestamp(self, qdatetime: QDateTime) -> float:
-        try:
-            return qdatetime.toPyDateTime().timestamp()
-        except OSError:
-            if not self._warn_reference_time:
-                self._iface.messageBar().pushMessage("Mesh Flow", "Set reference time after 1970", level=Qgis.Warning)
-                self._warn_reference_time = True
-            return qdatetime.toPyDateTime().replace(tzinfo=timezone.utc).timestamp()
+        return qdatetime.toPyDateTime().replace(tzinfo=timezone.utc).timestamp()
 
     def on_closed(self):
         self.current_profile_line.hide()
