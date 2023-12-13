@@ -11,17 +11,18 @@ about= The user has to choose the velocity dataset group and the depth dataset g
 ; end of mandatory metadata
 
 ; start of optional metadata
-changelog=0.1 - Initial release
- <p>0.1.1 bug fixes:
+changelog=0.1.1 bug fixes:
  - fix time when before 1970
- - unset maptool when dock widget is closed
+ - unset map tool when dock widget is closed
  - fix issue with dataset group
  - add a visibility action in mesh menu
+ <p>0.1 - Initial release
 
 
 ; tags are in comma separated value format, spaces are allowed
 tags=hydraulic,hydraulic modelling,flood,analysis,mesh,results viewer,flow,river,channel
 
+homepage=https://github.com/vcloarec/meshflow
 tracker=https://github.com/vcloarec/meshflow/issues
 repository=https://github.com/vcloarec/meshflow
 icon=images/meshflow.svg
