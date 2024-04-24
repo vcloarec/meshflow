@@ -1,4 +1,3 @@
-import decorator
 import math
 import os
 from datetime import timezone
@@ -39,15 +38,6 @@ try:
     import pyqtgraph
 except ImportError:
     import meshflow.pyqtgraph_0_12_2 as pyqtgraph
-
-
-@decorator.decorator
-def showWaitCursor(func, *args, **kwargs):
-    QApplication.setOverrideCursor(Qt.WaitCursor)
-    try:
-        return func(*args, **kwargs)
-    finally:
-        QApplication.restoreOverrideCursor()
 
 
 class ConfigDialog(QDialog):
@@ -210,7 +200,6 @@ class MainWidget(QWidget):
             settings = QgsSettings()
             settings.setValue("mesh-flow/delta", self._delta)
 
-    @showWaitCursor
     def _update_profile_flow(self):
         self._plot.clear()
         if self._delta <= 0:
@@ -245,38 +234,46 @@ class MainWidget(QWidget):
         times_hour = []
         time_abs = []
         ref_time = current_layer.temporalProperties().referenceTime()
-        for i in range(dataset_vector_count):
-            offset = self._delta / 2
-            sum = 0
-            vector_ds_index = QgsMeshDatasetIndex(group_vector_index, i)
-            ds_vect_meta = current_layer.datasetMetadata(vector_ds_index)
-            times_hour.append(ds_vect_meta.time())
-            time_ms = current_layer.datasetRelativeTimeInMilliseconds(vector_ds_index)
-            time_abs.append(self._datetime_to_timestamp(ref_time.addMSecs(time_ms)))
-            while offset < length:
-                pt = profile_geom.interpolate(offset).asPoint()
-                vector_value = current_layer.datasetValue(QgsMeshDatasetIndex(group_vector_index, i), pt)
-                _, _, next_vert, _ = profile_geom.closestSegmentWithContext(pt)
-                prev_vert = next_vert - 1
+        with OverrideCursor(Qt.CursorShape.WaitCursor):
+            for i in range(dataset_vector_count):
+                offset = self._delta / 2
+                sum = 0
+                vector_ds_index = QgsMeshDatasetIndex(group_vector_index, i)
+                ds_vect_meta = current_layer.datasetMetadata(vector_ds_index)
+                times_hour.append(ds_vect_meta.time())
+                time_ms = current_layer.datasetRelativeTimeInMilliseconds(vector_ds_index)
+                time_abs.append(self._datetime_to_timestamp(ref_time.addMSecs(time_ms)))
+                while offset < length:
+                    pt = profile_geom.interpolate(offset).asPoint()
+                    vector_value = current_layer.datasetValue(
+                        QgsMeshDatasetIndex(group_vector_index, i), pt
+                    )
+                    _, _, next_vert, _ = profile_geom.closestSegmentWithContext(pt)
+                    prev_vert = next_vert - 1
 
-                pt1 = profile_geom.vertexAt(prev_vert)
-                pt2 = profile_geom.vertexAt(next_vert)
+                    pt1 = profile_geom.vertexAt(prev_vert)
+                    pt2 = profile_geom.vertexAt(next_vert)
 
-                depth = current_layer.datasetValue(QgsMeshDatasetIndex(group_depth_index, i), pt).scalar()
+                    depth = current_layer.datasetValue(
+                        QgsMeshDatasetIndex(group_depth_index, i), pt
+                    ).scalar()
 
-                unit_orth_vector = QgsVector(pt2.x() - pt1.x(), pt2.y() - pt1.y())
-                unit_orth_vector = unit_orth_vector.perpVector()
-                try:
-                    unit_orth_vector = unit_orth_vector.normalized()
-                except:
+                    unit_orth_vector = QgsVector(pt2.x() - pt1.x(), pt2.y() - pt1.y())
+                    unit_orth_vector = unit_orth_vector.perpVector()
+                    try:
+                        unit_orth_vector = unit_orth_vector.normalized()
+                    except:
+                        offset += self._delta
+                        continue
+
+                    proj_vector_value = (
+                        unit_orth_vector.x() * vector_value.x()
+                        + unit_orth_vector.y() * vector_value.y()
+                    )
+                    proj_vector_value = proj_vector_value * depth * self._delta
+                    if not math.isnan(proj_vector_value):
+                        sum += proj_vector_value
                     offset += self._delta
-                    continue
-
-                proj_vector_value = unit_orth_vector.x() * vector_value.x() + unit_orth_vector.y() * vector_value.y()
-                proj_vector_value = proj_vector_value * depth * self._delta
-                if not math.isnan(proj_vector_value):
-                    sum += proj_vector_value
-                offset += self._delta
 
                 through_line_value_series.append(sum)
 
