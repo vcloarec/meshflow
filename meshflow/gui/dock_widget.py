@@ -2,17 +2,38 @@ import decorator
 import math
 import os
 from datetime import timezone
-from PyQt5.QtCore import Qt, pyqtSignal, QDateTime, QSize
-from PyQt5.QtWidgets import (QComboBox, QWidget, QGridLayout, QLabel, QToolButton, QAction, QToolBar, QDialog,
-                             QHBoxLayout, QVBoxLayout, QDialogButtonBox, QApplication, )
-from PyQt5.QtGui import QColor, QIcon
-from qgis.gui import QgsDockWidget, QgsMapLayerComboBox, QgsMapTool, QgsRubberBand, QgsDoubleSpinBox
-from qgis.core import (QgsProject, Qgis, QgsMapLayerProxyModel, QgsMeshLayer, QgsMapLayerType, QgsMeshDatasetIndex,
-                       QgsWkbTypes, QgsGeometry, QgsVector, QgsSettings, )
+
+from qgis.core import (
+    QgsGeometry,
+    QgsMapLayerProxyModel,
+    QgsMeshDatasetIndex,
+    QgsProject,
+    QgsSettings,
+    QgsVector,
+    QgsWkbTypes,
+)
+from qgis.gui import QgsDockWidget, QgsDoubleSpinBox, QgsMapLayerComboBox, QgsMapTool, QgsRubberBand
+from qgis.PyQt.QtCore import QDateTime, Qt, pyqtSignal
+from qgis.PyQt.QtGui import QColor, QIcon
+from qgis.PyQt.QtWidgets import (
+    QAction,
+    QComboBox,
+    QDialog,
+    QDialogButtonBox,
+    QGridLayout,
+    QHBoxLayout,
+    QLabel,
+    QToolBar,
+    QVBoxLayout,
+    QWidget,
+)
+from qgis.utils import OverrideCursor
 
 from ..resources import *
 
-ui_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", "ui", "dock_widget" + ".ui")
+ui_file = os.path.join(
+    os.path.dirname(os.path.realpath(__file__)), "..", "ui", "dock_widget" + ".ui"
+)
 
 try:
     import pyqtgraph
@@ -125,7 +146,9 @@ class MainWidget(QWidget):
         self._combo_depth_dataset_group.currentIndexChanged.connect(self._update_profile_flow)
 
         self._map_tool = PickGeometryTool(iface.mapCanvas())
-        self._action_map_tool = QAction(QIcon(":/plugins/mesh-flow/images/draw_profile.svg"), "Draw Profile", self)
+        self._action_map_tool = QAction(
+            QIcon(":/plugins/mesh-flow/images/draw_profile.svg"), "Draw Profile", self
+        )
         self._action_map_tool.setCheckable(True)
         self._map_tool.setAction(self._action_map_tool)
         self._tool_bar.addAction(self._action_map_tool)
@@ -136,7 +159,9 @@ class MainWidget(QWidget):
         self._current_profile_line.setColor(Qt.green)
         self._current_profile_line.setWidth(2)
 
-        self._action_config = QAction(QIcon(":/plugins/mesh-flow/images/settings.svg"), "Config", self)
+        self._action_config = QAction(
+            QIcon(":/plugins/mesh-flow/images/settings.svg"), "Config", self
+        )
         self._action_config.triggered.connect(self._on_config_dialog)
         self._tool_bar.addAction(self._action_config)
 
@@ -213,7 +238,9 @@ class MainWidget(QWidget):
         if length == 0 or length / self._delta > 10000:
             return
 
-        dataset_vector_count = current_layer.datasetCount(QgsMeshDatasetIndex(group_vector_index, 0))
+        dataset_vector_count = current_layer.datasetCount(
+            QgsMeshDatasetIndex(group_vector_index, 0)
+        )
         through_line_value_series = []
         times_hour = []
         time_abs = []
@@ -251,7 +278,7 @@ class MainWidget(QWidget):
                     sum += proj_vector_value
                 offset += self._delta
 
-            through_line_value_series.append(sum)
+                through_line_value_series.append(sum)
 
         pen = pyqtgraph.mkPen(color=QColor(Qt.blue), width=2, cosmetic=True)
         self._plot.plot(x=time_abs, y=through_line_value_series, connect="finite", pen=pen)
