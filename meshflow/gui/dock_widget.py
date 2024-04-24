@@ -1,32 +1,43 @@
-import decorator
 import math
 import os
 from datetime import timezone
-from PyQt5.QtCore import Qt, pyqtSignal, QDateTime, QSize
-from PyQt5.QtWidgets import (QComboBox, QWidget, QGridLayout, QLabel, QToolButton, QAction, QToolBar, QDialog,
-                             QHBoxLayout, QVBoxLayout, QDialogButtonBox, QApplication, )
-from PyQt5.QtGui import QColor, QIcon
-from qgis.gui import QgsDockWidget, QgsMapLayerComboBox, QgsMapTool, QgsRubberBand, QgsDoubleSpinBox
-from qgis.core import (QgsProject, Qgis, QgsMapLayerProxyModel, QgsMeshLayer, QgsMapLayerType, QgsMeshDatasetIndex,
-                       QgsWkbTypes, QgsGeometry, QgsVector, QgsSettings, )
+
+from qgis.core import (
+    QgsGeometry,
+    QgsMapLayerProxyModel,
+    QgsMeshDatasetIndex,
+    QgsProject,
+    QgsSettings,
+    QgsVector,
+    QgsWkbTypes,
+)
+from qgis.gui import QgsDockWidget, QgsDoubleSpinBox, QgsMapLayerComboBox, QgsMapTool, QgsRubberBand
+from qgis.PyQt.QtCore import QDateTime, Qt, pyqtSignal
+from qgis.PyQt.QtGui import QColor, QIcon
+from qgis.PyQt.QtWidgets import (
+    QAction,
+    QComboBox,
+    QDialog,
+    QDialogButtonBox,
+    QGridLayout,
+    QHBoxLayout,
+    QLabel,
+    QToolBar,
+    QVBoxLayout,
+    QWidget,
+)
+from qgis.utils import OverrideCursor
 
 from ..resources import *
 
-ui_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", "ui", "dock_widget" + ".ui")
+ui_file = os.path.join(
+    os.path.dirname(os.path.realpath(__file__)), "..", "ui", "dock_widget" + ".ui"
+)
 
 try:
     import pyqtgraph
 except ImportError:
     import meshflow.pyqtgraph_0_12_2 as pyqtgraph
-
-
-@decorator.decorator
-def showWaitCursor(func, *args, **kwargs):
-    QApplication.setOverrideCursor(Qt.WaitCursor)
-    try:
-        return func(*args, **kwargs)
-    finally:
-        QApplication.restoreOverrideCursor()
 
 
 class ConfigDialog(QDialog):
@@ -125,7 +136,9 @@ class MainWidget(QWidget):
         self._combo_depth_dataset_group.currentIndexChanged.connect(self._update_profile_flow)
 
         self._map_tool = PickGeometryTool(iface.mapCanvas())
-        self._action_map_tool = QAction(QIcon(":/plugins/mesh-flow/images/draw_profile.svg"), "Draw Profile", self)
+        self._action_map_tool = QAction(
+            QIcon(":/plugins/mesh-flow/images/draw_profile.svg"), "Draw Profile", self
+        )
         self._action_map_tool.setCheckable(True)
         self._map_tool.setAction(self._action_map_tool)
         self._tool_bar.addAction(self._action_map_tool)
@@ -136,7 +149,9 @@ class MainWidget(QWidget):
         self._current_profile_line.setColor(Qt.green)
         self._current_profile_line.setWidth(2)
 
-        self._action_config = QAction(QIcon(":/plugins/mesh-flow/images/settings.svg"), "Config", self)
+        self._action_config = QAction(
+            QIcon(":/plugins/mesh-flow/images/settings.svg"), "Config", self
+        )
         self._action_config.triggered.connect(self._on_config_dialog)
         self._tool_bar.addAction(self._action_config)
 
@@ -185,7 +200,6 @@ class MainWidget(QWidget):
             settings = QgsSettings()
             settings.setValue("mesh-flow/delta", self._delta)
 
-    @showWaitCursor
     def _update_profile_flow(self):
         self._plot.clear()
         if self._delta <= 0:
@@ -213,45 +227,55 @@ class MainWidget(QWidget):
         if length == 0 or length / self._delta > 10000:
             return
 
-        dataset_vector_count = current_layer.datasetCount(QgsMeshDatasetIndex(group_vector_index, 0))
+        dataset_vector_count = current_layer.datasetCount(
+            QgsMeshDatasetIndex(group_vector_index, 0)
+        )
         through_line_value_series = []
         times_hour = []
         time_abs = []
         ref_time = current_layer.temporalProperties().referenceTime()
-        for i in range(dataset_vector_count):
-            offset = self._delta / 2
-            sum = 0
-            vector_ds_index = QgsMeshDatasetIndex(group_vector_index, i)
-            ds_vect_meta = current_layer.datasetMetadata(vector_ds_index)
-            times_hour.append(ds_vect_meta.time())
-            time_ms = current_layer.datasetRelativeTimeInMilliseconds(vector_ds_index)
-            time_abs.append(self._datetime_to_timestamp(ref_time.addMSecs(time_ms)))
-            while offset < length:
-                pt = profile_geom.interpolate(offset).asPoint()
-                vector_value = current_layer.datasetValue(QgsMeshDatasetIndex(group_vector_index, i), pt)
-                _, _, next_vert, _ = profile_geom.closestSegmentWithContext(pt)
-                prev_vert = next_vert - 1
+        with OverrideCursor(Qt.CursorShape.WaitCursor):
+            for i in range(dataset_vector_count):
+                offset = self._delta / 2
+                sum = 0
+                vector_ds_index = QgsMeshDatasetIndex(group_vector_index, i)
+                ds_vect_meta = current_layer.datasetMetadata(vector_ds_index)
+                times_hour.append(ds_vect_meta.time())
+                time_ms = current_layer.datasetRelativeTimeInMilliseconds(vector_ds_index)
+                time_abs.append(self._datetime_to_timestamp(ref_time.addMSecs(time_ms)))
+                while offset < length:
+                    pt = profile_geom.interpolate(offset).asPoint()
+                    vector_value = current_layer.datasetValue(
+                        QgsMeshDatasetIndex(group_vector_index, i), pt
+                    )
+                    _, _, next_vert, _ = profile_geom.closestSegmentWithContext(pt)
+                    prev_vert = next_vert - 1
 
-                pt1 = profile_geom.vertexAt(prev_vert)
-                pt2 = profile_geom.vertexAt(next_vert)
+                    pt1 = profile_geom.vertexAt(prev_vert)
+                    pt2 = profile_geom.vertexAt(next_vert)
 
-                depth = current_layer.datasetValue(QgsMeshDatasetIndex(group_depth_index, i), pt).scalar()
+                    depth = current_layer.datasetValue(
+                        QgsMeshDatasetIndex(group_depth_index, i), pt
+                    ).scalar()
 
-                unit_orth_vector = QgsVector(pt2.x() - pt1.x(), pt2.y() - pt1.y())
-                unit_orth_vector = unit_orth_vector.perpVector()
-                try:
-                    unit_orth_vector = unit_orth_vector.normalized()
-                except:
+                    unit_orth_vector = QgsVector(pt2.x() - pt1.x(), pt2.y() - pt1.y())
+                    unit_orth_vector = unit_orth_vector.perpVector()
+                    try:
+                        unit_orth_vector = unit_orth_vector.normalized()
+                    except:
+                        offset += self._delta
+                        continue
+
+                    proj_vector_value = (
+                        unit_orth_vector.x() * vector_value.x()
+                        + unit_orth_vector.y() * vector_value.y()
+                    )
+                    proj_vector_value = proj_vector_value * depth * self._delta
+                    if not math.isnan(proj_vector_value):
+                        sum += proj_vector_value
                     offset += self._delta
-                    continue
 
-                proj_vector_value = unit_orth_vector.x() * vector_value.x() + unit_orth_vector.y() * vector_value.y()
-                proj_vector_value = proj_vector_value * depth * self._delta
-                if not math.isnan(proj_vector_value):
-                    sum += proj_vector_value
-                offset += self._delta
-
-            through_line_value_series.append(sum)
+                through_line_value_series.append(sum)
 
         pen = pyqtgraph.mkPen(color=QColor(Qt.blue), width=2, cosmetic=True)
         self._plot.plot(x=time_abs, y=through_line_value_series, connect="finite", pen=pen)
