@@ -4,14 +4,16 @@ name=Mesh Flow
 qgisMinimumVersion=3.28
 qgisMaximumVersion=3.99
 description= Tool to extract flow from hydraulic model results contained in a mesh layer.
-version=0.1.1
+version=0.1.2
 author=Vincent Cloarec
 email=vcloarec@gmail.com
 about= The user has to choose the velocity dataset group and the depth dataset group. Then when the user draw a line on the map canvas, the flow through the line is calculated to produce a hydrograph that can be view in a plot and exported (right click on the plot).
 ; end of mandatory metadata
 
 ; start of optional metadata
-changelog=0.1.1 bug fixes:
+changelog=0.1.2 bug fixes:
+ - fix decorator issue (@nicocodet)
+ <p>0.1.1 bug fixes:
  - fix time when before 1970
  - unset map tool when dock widget is closed
  - fix issue with dataset group
