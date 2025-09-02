@@ -54,7 +54,7 @@ class ConfigDialog(QDialog):
         lay.addWidget(self._double_spinbox)
         main_lay.addLayout(lay)
 
-        button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        button_box = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
         button_box.accepted.connect(self.accept)
         button_box.rejected.connect(self.reject)
 
@@ -71,29 +71,29 @@ class PickGeometryTool(QgsMapTool):
         QgsMapTool.__init__(self, canvas)
         self.points = []
         self.capturing = False
-        self.rubber_band = QgsRubberBand(canvas, QgsWkbTypes.LineGeometry)
-        self.rubber_band.setColor(Qt.red)
+        self.rubber_band = QgsRubberBand(canvas, QgsWkbTypes.GeometryType.LineGeometry)
+        self.rubber_band.setColor(Qt.GlobalColor.red)
         self.rubber_band.setWidth(2)
 
     def canvasMoveEvent(self, e):
         self.rubber_band.movePoint(e.mapPoint())
 
     def canvasPressEvent(self, e):
-        if e.button() == Qt.LeftButton:
+        if e.button() == Qt.MouseButton.LeftButton:
             self.points.append(e.mapPoint())
             self.rubber_band.addPoint(e.mapPoint())
-        if e.button() == Qt.RightButton:
+        if e.button() == Qt.MouseButton.RightButton:
             if len(self.points) > 1:
                 self.finished.emit(self.points, True)
             self.points = []
-            self.rubber_band.reset(QgsWkbTypes.LineGeometry)
+            self.rubber_band.reset(QgsWkbTypes.GeometryType.LineGeometry)
 
     def canvasReleaseEvent(self, e):
         pass
 
     def deactivate(self):
         QgsMapTool.deactivate(self)
-        self.rubber_band.reset(QgsWkbTypes.LineGeometry)
+        self.rubber_band.reset(QgsWkbTypes.GeometryType.LineGeometry)
 
 
 class MainWidget(QWidget):
@@ -112,13 +112,13 @@ class MainWidget(QWidget):
         self._tool_bar = QToolBar()
         icon_size = iface.iconSize(True)
         self._tool_bar.setIconSize(icon_size)
-        self._tool_bar.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
+        self._tool_bar.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
         lay.addWidget(self._tool_bar, 0, 0, 1, 2)
         lay.addWidget(QLabel("Mesh Layer"), 1, 0)
         lay.addWidget(QLabel("Vector Dataset Group"), 2, 0)
         lay.addWidget(QLabel("Depth Dataset Group"), 3, 0)
         self._combo_layer = QgsMapLayerComboBox(self)
-        self._combo_layer.setFilters(QgsMapLayerProxyModel.MeshLayer)
+        self._combo_layer.setFilters(QgsMapLayerProxyModel.Filter.MeshLayer)
         self._combo_layer.setProject(QgsProject.instance())
         lay.addWidget(self._combo_layer, 1, 1)
 
@@ -145,8 +145,8 @@ class MainWidget(QWidget):
         self._action_map_tool.triggered.connect(self._on_map_tool)
         self._map_tool.finished.connect(self._on_map_tool_finished)
 
-        self._current_profile_line = QgsRubberBand(iface.mapCanvas(), QgsWkbTypes.LineGeometry)
-        self._current_profile_line.setColor(Qt.green)
+        self._current_profile_line = QgsRubberBand(iface.mapCanvas(), QgsWkbTypes.GeometryType.LineGeometry)
+        self._current_profile_line.setColor(Qt.GlobalColor.green)
         self._current_profile_line.setWidth(2)
 
         self._action_config = QAction(
@@ -277,9 +277,9 @@ class MainWidget(QWidget):
 
                 through_line_value_series.append(sum)
 
-        pen = pyqtgraph.mkPen(color=QColor(Qt.blue), width=2, cosmetic=True)
+        pen = pyqtgraph.mkPen(color=QColor(Qt.GlobalColor.blue), width=2, cosmetic=True)
         self._plot.plot(x=time_abs, y=through_line_value_series, connect="finite", pen=pen)
-        pen = pyqtgraph.mkPen(color=QColor(Qt.red), width=1, cosmetic=True)
+        pen = pyqtgraph.mkPen(color=QColor(Qt.GlobalColor.red), width=1, cosmetic=True)
         self._time_line = pyqtgraph.InfiniteLine(angle=90, pen=pen)
         self._plot.addItem(self._time_line)
         self.on_time_change()

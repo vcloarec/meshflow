@@ -1,6 +1,6 @@
-from PyQt5.QtWidgets import QDialog, QHBoxLayout, QLabel, QMenu, QAction
-from PyQt5.QtGui import QIcon
-from PyQt5.QtCore import Qt
+from qgis.PyQt.QtWidgets import QDialog, QHBoxLayout, QLabel, QMenu, QAction
+from qgis.PyQt.QtGui import QIcon
+from qgis.PyQt.QtCore import Qt
 
 from qgis.gui import QgsDockWidget
 from .resources import *
@@ -18,7 +18,7 @@ class MeshFlowPlugin:
     def initGui(self):
         self._dock_widget = MeshFlowDockWidget(self._iface)
         self._visibility_action = QAction("Mesh Flow", self._iface.mainWindow())
-        self._iface.mainWindow().addDockWidget(Qt.LeftDockWidgetArea, self._dock_widget)
+        self._iface.mainWindow().addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self._dock_widget)
         self._dock_widget.setToggleVisibilityAction(self._visibility_action)
 
         mesh_menu = self._iface.mainWindow().findChild(QMenu, "mMeshMenu")
