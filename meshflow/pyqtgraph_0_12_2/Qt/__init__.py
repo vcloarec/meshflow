@@ -402,6 +402,6 @@ def mkQApp(name=None):
 
 
 # exec() is used within _loadUiType, so we define as exec_() here and rename in pg namespace
-def exec_():
+def exec():
     app = mkQApp()
-    return app.exec() if hasattr(app, 'exec') else app.exec_()
+    return app.exec() if hasattr(app, 'exec') else app.exec()
