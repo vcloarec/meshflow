@@ -37,7 +37,7 @@ ui_file = os.path.join(
 try:
     import pyqtgraph
 except ImportError:
-    import meshflow.pyqtgraph_0_12_2 as pyqtgraph
+    import meshflow.pyqtgraph_0_13_7 as pyqtgraph
 
 
 class ConfigDialog(QDialog):
