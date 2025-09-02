@@ -1,6 +1,0 @@
-<RCC>
-    <qresource prefix="/plugins/mesh-flow">
-        <file>images/draw_profile.svg</file>
-        <file>images/settings.svg</file>
-    </qresource>
-</RCC>

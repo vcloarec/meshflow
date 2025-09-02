@@ -1,5 +1,5 @@
 import math
-import os
+from pathlib import Path
 from datetime import timezone
 
 from qgis.core import (
@@ -28,16 +28,17 @@ from qgis.PyQt.QtWidgets import (
 )
 from qgis.utils import OverrideCursor
 
-from ..resources import *
-
-ui_file = os.path.join(
-    os.path.dirname(os.path.realpath(__file__)), "..", "ui", "dock_widget" + ".ui"
-)
+images_dir = Path(__file__).parent.parent / "images"
 
 try:
     import pyqtgraph
 except ImportError:
     import meshflow.pyqtgraph_0_13_7 as pyqtgraph
+
+
+def get_icon(name: str) -> QIcon:
+    """Get a QIcon from the images directory."""
+    return QIcon(str(images_dir / name))
 
 
 class ConfigDialog(QDialog):
@@ -136,9 +137,7 @@ class MainWidget(QWidget):
         self._combo_depth_dataset_group.currentIndexChanged.connect(self._update_profile_flow)
 
         self._map_tool = PickGeometryTool(iface.mapCanvas())
-        self._action_map_tool = QAction(
-            QIcon(":/plugins/mesh-flow/images/draw_profile.svg"), "Draw Profile", self
-        )
+        self._action_map_tool = QAction(get_icon("draw_profile.svg"), "Draw Profile", self)
         self._action_map_tool.setCheckable(True)
         self._map_tool.setAction(self._action_map_tool)
         self._tool_bar.addAction(self._action_map_tool)
@@ -149,9 +148,7 @@ class MainWidget(QWidget):
         self._current_profile_line.setColor(Qt.GlobalColor.green)
         self._current_profile_line.setWidth(2)
 
-        self._action_config = QAction(
-            QIcon(":/plugins/mesh-flow/images/settings.svg"), "Config", self
-        )
+        self._action_config = QAction(get_icon("settings.svg"), "Config", self)
         self._action_config.triggered.connect(self._on_config_dialog)
         self._tool_bar.addAction(self._action_config)
 

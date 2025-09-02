@@ -1,9 +1,5 @@
-from qgis.PyQt.QtWidgets import QDialog, QHBoxLayout, QLabel, QMenu, QAction
-from qgis.PyQt.QtGui import QIcon
+from qgis.PyQt.QtWidgets import QMenu, QAction
 from qgis.PyQt.QtCore import Qt
-
-from qgis.gui import QgsDockWidget
-from .resources import *
 
 from .gui.dock_widget import MeshFlowDockWidget
 
