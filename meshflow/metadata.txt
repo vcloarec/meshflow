@@ -1,7 +1,7 @@
 ; the next section is mandatory
 [general]
 name=Mesh Flow
-qgisMinimumVersion=3.28
+qgisMinimumVersion=3.34
 qgisMaximumVersion=4.99
 supportsQt6=True
 description= Tool to extract flow from hydraulic model results contained in a mesh layer.
@@ -12,7 +12,10 @@ about= The user has to choose the velocity dataset group and the depth dataset g
 ; end of mandatory metadata
 
 ; start of optional metadata
-changelog=0.1.3 added QGIS 4 support
+changelog=0.1.3 added QGIS 4 support (@Amalvir):
+ - set minimum version to 3.34
+ - clean unused files and resources
+ - ensure compatibility with pyQt6 for QGIS 4
  <p>0.1.2 bug fixes:
  - fix decorator issue (@nicocodet)
  <p>0.1.1 bug fixes:
